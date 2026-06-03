@@ -102,19 +102,7 @@ The core database model handles authentication, business linking, and account st
 
 ---
 
-## ⚙️ Environment Configuration
 
-Create a `.env` file inside the `server/` directory and configure the variables below:
-
-```env
-PORT=5000
-MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/onshop?retryWrites=true&w=majority&replicaSet=<your_replica_set>
-JWT_SECRET=your_secure_random_jwt_secret_key_here
-CLIENT_URL=http://localhost:5173
-NODE_ENV=development
-```
-
----
 
 ## 🚀 Getting Started
 
