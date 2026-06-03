@@ -1,190 +1,202 @@
-# 🛍️ OnShop: E-Commerce Platform (Authentication & RBAC Module)
+# 🛍️ OnShop: Multi-Tenant SaaS E-Commerce Platform
 
-OnShop is a multi-vendor e-commerce platform featuring robust authentication and dynamic Role-Based Access Control (RBAC). This repository hosts the core Authentication and Authorization module, which separates access levels for three key roles: **Super Admins**, **Vendors**, and **Customers**.
+OnShop is a secure, multi-tenant Software-as-a-Service (SaaS) e-commerce platform designed to allow multiple vendors to host their independent storefronts while customers browse products, manage their shopping carts, and place orders. The platform is protected by a robust Role-Based Access Control (RBAC) security system.
+
+Developed under **Zaalima Development**, this project is modularized into four primary areas:
+1. **Authentication & Roles Module**
+2. **Store & Product Management Module**
+3. **Cart & Payments Module**
+4. **Dashboard & Analytics Module**
 
 ---
 
-## 🚀 Key Features
+## 🏗️ Architecture & Modules Overview
 
-### 🔒 Backend (Express & Node.js)
-* **Stateless JWT Session Management:** Role-based token expiry (7 days for Customers, 24 hours for Vendors & Admins).
-* **Role-Based Authorization Middlewares:** Granular route protection using custom middleware layers.
-* **Security & Defense System:**
-  * **Helmet.js:** Secures HTTP headers to protect against common vulnerabilities.
-  * **CORS Integration:** Configured to trust only designated frontend origin ports.
-  * **Rate Limiting:** Prevents brute force login attempts (max 10 requests per 15 minutes per IP).
-  * **Input Validation:** Validation schemas using `express-validator` and Mongoose schema constraints to prevent injection attacks.
-* **Database Seeding:** Dedicated CLI scripts to easily bootstrap default Super Admin accounts.
+### 🔑 1. Authentication & RBAC (Security Layer)
+* **JWT Session Management:** Stateless session handling using JWTs with custom lifetimes (7 days for customers, 24 hours for vendors and admins).
+* **Role-Based Access Control (RBAC):** Three distinct roles with custom registration, login, and authorization logic:
+  * **Super Admin:** Pre-seeded platform managers with capabilities to approve vendors, suspend users, and view platform-wide analytics.
+  * **Vendor:** Business owners who register (subject to admin approval) to manage their stores and inventory.
+  * **Customer:** Regular users who register instantly, browse stores, purchase products, and track order histories.
+* **Security & Defense Systems:**
+  * Global HTTP protection using **Helmet.js**.
+  * Dynamic CORS configuration limiting API access to authorized frontend origins.
+  * API rate limiting on authentication routes (maximum 10 requests per 15 minutes per IP).
+  * Input validation and sanitization using `express-validator`.
 
-### 💻 Frontend (React & Vite)
-* **Global Redux Store:** Stores auth state globally, persisting JWTs and restoring session data automatically on browser refreshes.
-* **Declarative Route Guards:** Custom `<ProtectedRoute>` component intercepting unauthorized access and redirecting users dynamically based on roles.
-* **Responsive Dashboard UIs:** Polished user flows using Vanilla CSS, complete with loader spinners, custom status badges, forms, and layout grids.
-* **Role-Based Registrations:** Distinct endpoints and pages for customer and vendor registration.
+### 🏪 2. Store & Product Management
+* **Store Isolation:** Vendors are linked to their own store context (`storeId` ref), preventing them from viewing or modifying other stores.
+* **Product CRUD:** Complete create, read, update, and delete actions for store items.
+* **Media Storage:** Integrated **Cloudinary** storage for secure product image uploads.
+
+### 🛒 3. Cart & Payments
+* **Customer Context linkage:** Cart items and checkouts are dynamically linked directly to the authenticated customer via the `protect` middleware.
+* **Shopping Cart:** Real-time adding, removing, and quantity adjustments of items.
+* **Checkout System:** Dynamic order placement and order history logs.
+
+### 📊 4. Dashboard & Analytics
+* **Super Admin Analytics:** Comprehensive charts and stats showing total platform revenue, order volumes, and active stores.
+* **Vendor Analytics:** Deep dives into store-specific sales performance and revenue metrics.
+* **UI Protection:** Route guards that restrict dashboard access to authorized roles.
 
 ---
 
 ## 🛠️ Technology Stack
 
-| Layer | Technologies Used |
-|---|---|
-| **Frontend** | React (Vite), Redux Toolkit, React Router DOM, HTML5, Vanilla CSS |
-| **Backend** | Node.js, Express.js, JWT (`jsonwebtoken`), `bcryptjs`, `express-validator`, `express-rate-limit`, `helmet`, `cors` |
-| **Database** | MongoDB Atlas (Mongoose ODM) |
-| **Tooling** | npm, Git |
+| Layer | Technology | Purpose |
+|---|---|---|
+| **Frontend** | React (Vite) | Component-based, lightning-fast SPA rendering |
+| **State Management** | Redux Toolkit | Global and persistent state slicing (auth, cart) |
+| **Routing** | React Router DOM | Router configuration with custom `<ProtectedRoute>` guards |
+| **Styling** | Vanilla CSS / Tailwind CSS | Polished, interactive, and responsive UI components |
+| **Backend API** | Node.js / Express.js | Core web application router and middleware runner |
+| **Security** | JWT, Bcrypt.js, Helmet.js | Token authorization, secure password hashing, and HTTP security headers |
+| **Database** | MongoDB & Mongoose | Document-oriented data persistence with Schema rules |
+| **Storage** | Cloudinary | Static asset and product image hosting |
 
 ---
 
-## 📂 Project Structure
+## 📂 Repository Directory Structure
 
 ```
 z-p1/
-├── client/                 # React Frontend Application
+├── client/                     # React Frontend App
 │   ├── src/
-│   │   ├── components/     # Reusable UI Elements (Spinner, Route Guards, etc.)
-│   │   ├── pages/          # Dashboards (Admin, Vendor, Customer Shop)
-│   │   ├── store/          # Redux Toolkit Slices (Auth state, etc.)
-│   │   ├── App.jsx         # Routes definition
-│   │   └── main.jsx        # App entry point
+│   │   ├── components/         # Reusable UI elements (Spinner, Navbar, protected router)
+│   │   ├── pages/              # Portals & Dashboards (Shop, Vendor Dashboard, Admin Console)
+│   │   ├── store/              # Redux slices (authSlice, cartSlice, etc.)
+│   │   ├── App.jsx             # Main Router and Page Definitions
+│   │   └── main.jsx            # Entry point
 │   ├── package.json
 │   └── vite.config.js
 │
-├── server/                 # Express Backend API
-│   ├── config/             # DB Connection Config
-│   ├── middleware/         # Auth, Role Guards, & Rate Limiters
-│   ├── models/             # Mongoose Schemas (User, Store)
-│   ├── routes/             # Authentication & User Management Routes
-│   ├── seedAdmin.js        # Seed script for Super Admin
-│   ├── server.js           # Express Entrypoint
+├── server/                     # Node.js Express REST API
+│   ├── config/                 # DB connection and helper utilities
+│   ├── middleware/             # Auth parser, RBAC controller, Rate limiters
+│   ├── models/                 # Database Schemas (User.js, Store.js, Product.js, Order.js)
+│   ├── routes/                 # Core API endpoints (auth, admin, vendor, shop, etc.)
+│   ├── seedAdmin.js            # Database seeding script for Super Admin
+│   ├── server.js               # Entrypoint script
 │   └── package.json
 │
-├── handoff_notes.md        # Technical guidelines for subsequent modules
-└── walkthrough.md          # Step-by-step feature walkthrough
+├── handoff_notes.md            # Technical guidelines for module integration
+└── walkthrough.md              # Detailed walkthrough of auth flows & testing steps
 ```
 
 ---
 
-## ⚙️ Environment Variables Setup
+## 💾 Database Schema: User Model
 
-Create a `.env` file in the `server` directory and configure the following parameters:
+The core database model handles authentication, business linking, and account states:
+
+| Field | Type | Required | Default | Notes |
+|---|---|---|---|---|
+| `_id` | `ObjectId` | Auto | - | Primary Key |
+| `name` | `String` | Yes | - | User's full name (2-100 characters) |
+| `email` | `String` | Yes | - | Unique, indexed, lowercased on save |
+| `password` | `String` | Yes | - | Bcrypt hashed; omitted from API responses |
+| `role` | `String` | Yes | `'customer'` | Enum: `'superadmin'`, `'vendor'`, `'customer'` |
+| `status` | `String` | Yes | `'active'` / `'pending'` | Enum: `'pending'`, `'active'`, `'suspended'` |
+| `businessName` | `String` | Conditional | - | Required only when `role` is `'vendor'` |
+| `storeId` | `ObjectId` | No | `null` | References `Store` model (linked on store creation) |
+
+---
+
+## ⚙️ Environment Configuration
+
+Create a `.env` file inside the `server/` directory and configure the variables below:
 
 ```env
 PORT=5000
 MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/onshop?retryWrites=true&w=majority&replicaSet=<your_replica_set>
-JWT_SECRET=your_jwt_secret_key_here
+JWT_SECRET=your_secure_random_jwt_secret_key_here
 CLIENT_URL=http://localhost:5173
 NODE_ENV=development
 ```
 
 ---
 
-## ⚡ Getting Started
+## 🚀 Getting Started
 
-### 1. Clone & Install Dependencies
+### 1. Install Project Dependencies
 
-Open your terminal in the root directory and install packages for both the client and server:
+Install dependencies for both frontend and backend modules:
 
 ```bash
-# Install Server Dependencies
+# Backend dependencies
 cd server
 npm install
 
-# Install Client Dependencies
+# Frontend dependencies
 cd ../client
 npm install
 ```
 
-### 2. Bootstrapping the Super Admin Account
-
-Run the pre-configured seeding script to create the initial Super Admin account:
+### 2. Run Database Seeding
+To initialize the Super Admin role for testing and review:
 
 ```bash
 cd ../server
 node seedAdmin.js
 ```
+* **Super Admin Login:** `admin@onshop.com` / `Admin@123456`
 
-* **Default Admin Email:** `admin@onshop.com`
-* **Default Admin Password:** `Admin@123456`
+### 3. Launch Development Servers
 
-### 3. Run the Development Servers
-
-Run both servers concurrently.
-
-**Start the Backend API:**
+Start the Express API:
 ```bash
-# In server/ directory
-npm run dev
-# or: node server.js
-```
-*API will run on [http://localhost:5000](http://localhost:5000)*
-
-**Start the Frontend App:**
-```bash
-# In client/ directory
+# Inside server/
 npm run dev
 ```
-*Frontend will run on [http://localhost:5173](http://localhost:5173)*
+*Port:* `http://localhost:5000`
+
+Start the Vite React Application:
+```bash
+# Inside client/
+npm run dev
+```
+*Port:* `http://localhost:5173`
 
 ---
 
-## 🧪 Role & Verification Flows
+## 🛡️ Middleware Reference (Developer Guide)
 
-Use the following flows to test user registration, approvals, and route security:
+When developing or integrating endpoints, apply the following authorization filters:
 
-### Flow A: Customer Shop Registration
-1. Navigate to `http://localhost:5173/register`.
-2. Register a new Customer account.
-3. You are automatically signed in and redirected to the `/shop` route.
+| Middleware | Path | Purpose |
+|---|---|---|
+| `protect` | `server/middleware/auth.js` | Parses the `Authorization: Bearer <JWT>` header and attaches `req.user` payload. |
+| `authorizeRoles(...roles)` | `server/middleware/auth.js` | Restricts route access to specific role arrays (e.g., `authorizeRoles('vendor', 'superadmin')`). |
+| `checkAccountStatus` | `server/middleware/auth.js` | Rejects requests from users whose status is set to `'pending'` or `'suspended'`. |
+| `apiLimiter` | `server/middleware/rateLimiter.js` | Protects authentication routes from brute force attacks (max 10 requests per 15 mins). |
 
-### Flow B: Vendor Registration & Admin Approval
-1. Navigate to `http://localhost:5173/vendor/register`.
-2. Register a Vendor account. Try logging in immediately; you should be blocked since your status is `pending`.
-3. Open `http://localhost:5173/admin/login` and authenticate using the Super Admin credentials (`admin@onshop.com` / `Admin@123456`).
-4. Approve the pending Vendor from the Admin panel table.
-5. Log out of the Admin panel, go to `http://localhost:5173/login`, and log in as the approved Vendor. You will be redirected to the Vendor Dashboard (`/vendor/dashboard`).
+### Integration Examples:
 
-### Flow C: Role-Based Router Security Check
-1. Log in as a Customer.
-2. Manually type `http://localhost:5173/vendor/dashboard` or `/admin/dashboard` in the address bar.
-3. The `<ProtectedRoute>` interceptor will immediately redirect you back to `/shop` to protect system boundaries.
-
----
-
-## 🛡️ Developer Integration Guide
-
-If you are building subsequent modules (e.g., Store Management, Cart, Checkout, or Analytics), incorporate the auth controls as follows:
-
-### 1. Accessing Authenticated User Context
-The `protect` middleware attaches the validated user payload directly to `req.user`.
-
+**Route Protection & RBAC:**
 ```javascript
-const { protect } = require('../middleware/auth');
+const { protect, authorizeRoles, checkAccountStatus } = require('../middleware/auth');
 
-router.get('/my-data', protect, (req, res) => {
-  const userId = req.user.id;
-  const userRole = req.user.role;
-  // Proceed with DB query using userId
+// Protect vendor products CRUD
+router.post('/products', protect, checkAccountStatus, authorizeRoles('vendor'), createProduct);
+```
+
+**Context Association:**
+```javascript
+router.post('/orders', protect, async (req, res) => {
+  const newOrder = await Order.create({
+    user: req.user.id, // Linked dynamically from JWT payload
+    items: req.body.items
+  });
+  res.status(201).json(newOrder);
 });
 ```
 
-### 2. Securing Routes by Role
-Pass roles allowed to access specific endpoints into `authorizeRoles`:
+---
 
-```javascript
-const { protect, authorizeRoles } = require('../middleware/auth');
+## 🤝 Git Commit Guidelines
 
-// Only Vendors can create products
-router.post('/products', protect, authorizeRoles('vendor'), createProduct);
-
-// Only Super Admins can fetch platform metrics
-router.get('/admin/analytics', protect, authorizeRoles('superadmin'), getAdminAnalytics);
-```
-
-### 3. Blocking Suspended or Pending Accounts
-Add `checkAccountStatus` to ensure deactivated or pending vendors cannot access routes:
-
-```javascript
-const { protect, checkAccountStatus } = require('../middleware/auth');
-
-router.get('/vendor/profile', protect, checkAccountStatus, getVendorProfile);
-```
+To maintain clean repository histories, write commits conforming to standard prefixes:
+* `feat:` for new capabilities (e.g. `feat: add product model and route`)
+* `fix:` for fixing bugs (e.g. `fix: patch cross-origin redirect error`)
+* `chore:` for housekeeping (e.g. `chore: update dependencies`)
+* `docs:` for documentation modifications
