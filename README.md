@@ -1,82 +1,110 @@
 # 🛍️ OnShop: Multi-Tenant SaaS E-Commerce Platform
 
-OnShop is a multi-tenant Software-as-a-Service (SaaS) e-commerce platform where multiple independent vendors can set up digital storefronts, and customers can browse, add items to a cart, and place orders. The platform features an automated security layer, approval systems, and interactive dashboards.
+OnShop is a secure, multi-tenant Software-as-a-Service (SaaS) e-commerce platform designed to allow multiple vendors to host their independent storefronts while customers browse products, manage their shopping carts, and place orders. The platform is protected by a robust Role-Based Access Control (RBAC) security system.
+
+Developed under **Zaalima Development**, this project is modularized into four primary areas:
+1. **Authentication & Roles Module**
+2. **Store & Product Management Module**
+3. **Cart & Payments Module**
+4. **Dashboard & Analytics Module**
 
 ---
 
-## 🔄 End-to-End System Workflow
+## 🏗️ Architecture & Modules Overview
 
-This diagram outlines how the entire platform operates from user onboarding through to checkout and store analytics:
+### 🔑 1. Authentication & RBAC (Security Layer)
+* **JWT Session Management:** Stateless session handling using JWTs with custom lifetimes (7 days for customers, 24 hours for vendors and admins).
+* **Role-Based Access Control (RBAC):** Three distinct roles with custom registration, login, and authorization logic:
+  * **Super Admin:** Pre-seeded platform managers with capabilities to approve vendors, suspend users, and view platform-wide analytics.
+  * **Vendor:** Business owners who register (subject to admin approval) to manage their stores and inventory.
+  * **Customer:** Regular users who register instantly, browse stores, purchase products, and track order histories.
+* **Security & Defense Systems:**
+  * Global HTTP protection using **Helmet.js**.
+  * Dynamic CORS configuration limiting API access to authorized frontend origins.
+  * API rate limiting on authentication routes (maximum 10 requests per 15 minutes per IP).
+  * Input validation and sanitization using `express-validator`.
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Admin as Super Admin
-    actor Vendor as Vendor
-    actor Customer as Customer
-    
-    %% Registration & Onboarding
-    Note over Customer, Vendor: 1. User Registration Lifecycle
-    Customer->>System: Register (Instant Activation)
-    Vendor->>System: Register (Enters 'Pending' State)
-    Admin->>System: Log in & Approve Pending Vendor
-    System-->>Vendor: Account Activated
-    
-    %% Vendor Setup & Store Management
-    Note over Vendor: 2. Store & Product Management
-    Vendor->>System: Setup Store & Upload Products (Cloudinary Images)
-    System-->>Customer: Products displayed in Multi-Tenant Storefront
-    
-    %% Customer Checkout Journey
-    Note over Customer: 3. Shopping & Checkout
-    Customer->>System: Browse products, add to Cart, and Checkout
-    System-->>Vendor: Receives Store Order
-    System-->>Customer: Receives Order Confirmation & History Log
-    
-    %% Analytics & Control
-    Note over Admin, Vendor: 4. Analytics & Administration
-    Vendor->>System: View Store Dashboard (Store Revenue, Products sold)
-    Admin->>System: View Platform Admin Console (Aggregate Revenue, Global settings)
+### 🏪 2. Store & Product Management
+* **Store Isolation:** Vendors are linked to their own store context (`storeId` ref), preventing them from viewing or modifying other stores.
+* **Product CRUD:** Complete create, read, update, and delete actions for store items.
+* **Media Storage:** Integrated **Cloudinary** storage for secure product image uploads.
+
+### 🛒 3. Cart & Payments
+* **Customer Context linkage:** Cart items and checkouts are dynamically linked directly to the authenticated customer via the `protect` middleware.
+* **Shopping Cart:** Real-time adding, removing, and quantity adjustments of items.
+* **Checkout System:** Dynamic order placement and order history logs.
+
+### 📊 4. Dashboard & Analytics
+* **Super Admin Analytics:** Comprehensive charts and stats showing total platform revenue, order volumes, and active stores.
+* **Vendor Analytics:** Deep dives into store-specific sales performance and revenue metrics.
+* **UI Protection:** Route guards that restrict dashboard access to authorized roles.
+
+---
+
+## 🛠️ Technology Stack
+
+| Layer | Technology | Purpose |
+|---|---|---|
+| **Frontend** | React (Vite) | Component-based, lightning-fast SPA rendering |
+| **State Management** | Redux Toolkit | Global and persistent state slicing (auth, cart) |
+| **Routing** | React Router DOM | Router configuration with custom `<ProtectedRoute>` guards |
+| **Styling** | Vanilla CSS / Tailwind CSS | Polished, interactive, and responsive UI components |
+| **Backend API** | Node.js / Express.js | Core web application router and middleware runner |
+| **Security** | JWT, Bcrypt.js, Helmet.js | Token authorization, secure password hashing, and HTTP security headers |
+| **Database** | MongoDB & Mongoose | Document-oriented data persistence with Schema rules |
+| **Storage** | Cloudinary | Static asset and product image hosting |
+
+---
+
+## 📂 Repository Directory Structure
+
+```
+z-p1/
+├── client/                     # React Frontend App
+│   ├── src/
+│   │   ├── components/         # Reusable UI elements (Spinner, Navbar, protected router)
+│   │   ├── pages/              # Portals & Dashboards (Shop, Vendor Dashboard, Admin Console)
+│   │   ├── store/              # Redux slices (authSlice, cartSlice, etc.)
+│   │   ├── App.jsx             # Main Router and Page Definitions
+│   │   └── main.jsx            # Entry point
+│   ├── package.json
+│   └── vite.config.js
+│
+├── server/                     # Node.js Express REST API
+│   ├── config/                 # DB connection and helper utilities
+│   ├── middleware/             # Auth parser, RBAC controller, Rate limiters
+│   ├── models/                 # Database Schemas (User.js, Store.js, Product.js, Order.js)
+│   ├── routes/                 # Core API endpoints (auth, admin, vendor, shop, etc.)
+│   ├── seedAdmin.js            # Database seeding script for Super Admin
+│   ├── server.js               # Entrypoint script
+│   └── package.json
+│
+├── handoff_notes.md            # Technical guidelines for module integration
+└── walkthrough.md              # Detailed walkthrough of auth flows & testing steps
 ```
 
 ---
 
-## 🛠️ Step-by-Step Platform Working Details
+## 💾 Database Schema: User Model
 
-### 1. Account Lifecycle & User Onboarding
-* **Customer Registration:** Customers sign up directly on the application. Registration is instantaneous, granting immediate access to the shopping storefront.
-* **Vendor Application & Admin Verification:** Vendors apply by providing business credentials. Upon registration, their status is set to `pending`, preventing access. A Super Admin must log into the Admin portal, inspect the applicant's details, and approve them to change their status to `active`.
-* **Platform Seeding:** The primary platform administrator (Super Admin) is seeded directly into the database through a command-line script.
+The core database model handles authentication, business linking, and account states:
 
-### 2. Multi-Tenant Store Creation & Inventory Management
-* **Store Creation:** Once approved, active Vendors can create a store profile. The system updates the User model with the newly generated `storeId`.
-* **Product Catalog Management:** Vendors manage their inventory (create, edit, delete products) within their dashboard. Product images are uploaded directly to **Cloudinary** and saved as secure asset URLs in MongoDB.
-* **Tenant Isolation:** Custom database queries filter products and orders by `storeId`, preventing vendors from viewing or modifying competitor inventories.
-
-### 3. Shopping Cart & Order Checkout System
-* **Contextual Browsing:** Customers browse unified product listings across different store tenants.
-* **Persistent Shopping Cart:** Customers add products to a persistent cart. The system tracks item quantities, calculating price subtotals locally and verifying stock counts against the database.
-* **Stateless Order Processing:** During checkout, the client signs the request using the customer's JWT token. The server decodes the customer's ID, verifies inventory levels, decrements product stock, and creates an order record.
-
-### 4. Revenue Analytics & Platform Control
-* **Vendor Dashboard:** Provides individual vendors with store-specific metrics (gross revenue, items sold, active orders).
-* **Super Admin Dashboard:** Displays aggregated analytics covering all registered stores, platform-wide revenue, global order volume, and active user counts. Admins can suspend users or manage global settings.
+| Field | Type | Required | Default | Notes |
+|---|---|---|---|---|
+| `_id` | `ObjectId` | Auto | - | Primary Key |
+| `name` | `String` | Yes | - | User's full name (2-100 characters) |
+| `email` | `String` | Yes | - | Unique, indexed, lowercased on save |
+| `password` | `String` | Yes | - | Bcrypt hashed; omitted from API responses |
+| `role` | `String` | Yes | `'customer'` | Enum: `'superadmin'`, `'vendor'`, `'customer'` |
+| `status` | `String` | Yes | `'active'` / `'pending'` | Enum: `'pending'`, `'active'`, `'suspended'` |
+| `businessName` | `String` | Conditional | - | Required only when `role` is `'vendor'` |
+| `storeId` | `ObjectId` | No | `null` | References `Store` model (linked on store creation) |
 
 ---
 
-## 🛡️ Core Security Architecture
+## ⚙️ Environment Configuration
 
-* **Stateless Authentication:** All communication between frontend and backend is authenticated via a custom `Authorization: Bearer <JWT>` header, allowing secure verification without session store overhead.
-* **Express Security Hardening:**
-  * **Helmet.js:** Automatically configures HTTP headers to protect against clickjacking, cross-site scripting (XSS), and other injection vulnerabilities.
-  * **Rate Limiting:** Protects authorization endpoints from dictionary attacks by restricting IPs to a maximum of 10 requests per 15 minutes.
-  * **Input Sanitization:** Express-validator validates structural body payloads before data reaches controller levels.
-
----
-
-## ⚙️ Environment Variables
-
-Create a `.env` file in the `server` directory:
+Create a `.env` file inside the `server/` directory and configure the variables below:
 
 ```env
 PORT=5000
@@ -88,40 +116,87 @@ NODE_ENV=development
 
 ---
 
-## ⚡ Getting Started
+## 🚀 Getting Started
 
-### 1. Installation
+### 1. Install Project Dependencies
+
+Install dependencies for both frontend and backend modules:
 
 ```bash
-# Install Server packages
+# Backend dependencies
 cd server
 npm install
 
-# Install Client packages
+# Frontend dependencies
 cd ../client
 npm install
 ```
 
-### 2. Seed Admin User
+### 2. Run Database Seeding
+To initialize the Super Admin role for testing and review:
 
 ```bash
 cd ../server
 node seedAdmin.js
 ```
-* **Super Admin Credentials:** `admin@onshop.com` / `Admin@123456`
+* **Super Admin Login:** `admin@onshop.com` / `Admin@123456`
 
-### 3. Start Development Servers
+### 3. Launch Development Servers
 
-**Run Backend API:**
+Start the Express API:
 ```bash
-cd server
+# Inside server/
 npm run dev
 ```
-*Runs on [http://localhost:5000](http://localhost:5000)*
+*Port:* `http://localhost:5000`
 
-**Run Frontend Client:**
+Start the Vite React Application:
 ```bash
-cd client
+# Inside client/
 npm run dev
 ```
-*Runs on [http://localhost:5173](http://localhost:5173)*
+*Port:* `http://localhost:5173`
+
+---
+
+## 🛡️ Middleware Reference (Developer Guide)
+
+When developing or integrating endpoints, apply the following authorization filters:
+
+| Middleware | Path | Purpose |
+|---|---|---|
+| `protect` | `server/middleware/auth.js` | Parses the `Authorization: Bearer <JWT>` header and attaches `req.user` payload. |
+| `authorizeRoles(...roles)` | `server/middleware/auth.js` | Restricts route access to specific role arrays (e.g., `authorizeRoles('vendor', 'superadmin')`). |
+| `checkAccountStatus` | `server/middleware/auth.js` | Rejects requests from users whose status is set to `'pending'` or `'suspended'`. |
+| `apiLimiter` | `server/middleware/rateLimiter.js` | Protects authentication routes from brute force attacks (max 10 requests per 15 mins). |
+
+### Integration Examples:
+
+**Route Protection & RBAC:**
+```javascript
+const { protect, authorizeRoles, checkAccountStatus } = require('../middleware/auth');
+
+// Protect vendor products CRUD
+router.post('/products', protect, checkAccountStatus, authorizeRoles('vendor'), createProduct);
+```
+
+**Context Association:**
+```javascript
+router.post('/orders', protect, async (req, res) => {
+  const newOrder = await Order.create({
+    user: req.user.id, // Linked dynamically from JWT payload
+    items: req.body.items
+  });
+  res.status(201).json(newOrder);
+});
+```
+
+---
+
+## 🤝 Git Commit Guidelines
+
+To maintain clean repository histories, write commits conforming to standard prefixes:
+* `feat:` for new capabilities (e.g. `feat: add product model and route`)
+* `fix:` for fixing bugs (e.g. `fix: patch cross-origin redirect error`)
+* `chore:` for housekeeping (e.g. `chore: update dependencies`)
+* `docs:` for documentation modifications
