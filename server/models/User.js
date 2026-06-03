@@ -90,7 +90,7 @@ userSchema.pre('save', async function (next) {
 });
 
 /**
- * Instance method: Compare entered password with hashed password in DB.
+ 
  * @param {string} enteredPassword - Plain text password from login form
  * @returns {Promise<boolean>} True if passwords match
  */
@@ -98,9 +98,6 @@ userSchema.methods.comparePassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-/**
- * Custom validation: businessName is required when role is 'vendor'.
- */
 userSchema.pre('validate', function (next) {
   if (this.role === 'vendor' && !this.businessName) {
     this.invalidate('businessName', 'Business name is required for vendors');
@@ -108,9 +105,6 @@ userSchema.pre('validate', function (next) {
   next();
 });
 
-/**
- * Override toJSON to never expose password in serialized output.
- */
 userSchema.methods.toJSON = function () {
   const user = this.toObject();
   delete user.password;

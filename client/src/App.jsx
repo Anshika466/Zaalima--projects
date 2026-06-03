@@ -7,14 +7,19 @@ import { getMe } from './store/slices/authSlice';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 
-// Pages
+// Pages — Auth (existing)
 import Login from './pages/Login';
 import AdminLogin from './pages/AdminLogin';
 import CustomerRegister from './pages/CustomerRegister';
 import VendorRegister from './pages/VendorRegister';
+
+// Pages — Dashboards (existing)
 import CustomerHome from './pages/CustomerHome';
 import VendorDashboard from './pages/VendorDashboard';
 import AdminDashboard from './pages/AdminDashboard';
+
+// Pages — New (integrated from teammate's module)
+import Checkout from './pages/Checkout';
 
 function App() {
   const dispatch = useDispatch();
@@ -32,13 +37,13 @@ function App() {
       <div className="app-container">
         <Navbar />
         <Routes>
-          {/* Public Routes */}
+          {/* ── PUBLIC ROUTES ── */}
           <Route path="/login" element={<Login />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/register" element={<CustomerRegister />} />
           <Route path="/vendor/register" element={<VendorRegister />} />
 
-          {/* Protected Routes */}
+          {/* ── PROTECTED — CUSTOMER ── */}
           <Route
             path="/shop"
             element={
@@ -48,6 +53,16 @@ function App() {
             }
           />
           <Route
+            path="/checkout"
+            element={
+              <ProtectedRoute allowedRoles={['customer']}>
+                <Checkout />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ── PROTECTED — VENDOR ── */}
+          <Route
             path="/vendor/dashboard"
             element={
               <ProtectedRoute allowedRoles={['vendor']}>
@@ -55,6 +70,8 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* ── PROTECTED — ADMIN ── */}
           <Route
             path="/admin/dashboard"
             element={
@@ -64,7 +81,7 @@ function App() {
             }
           />
 
-          {/* Default redirect */}
+          {/* ── DEFAULTS ── */}
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

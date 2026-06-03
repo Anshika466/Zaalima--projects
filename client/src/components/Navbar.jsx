@@ -1,11 +1,12 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logoutUser } from '../store/slices/authSlice';
-import { HiOutlineLogout, HiOutlineUser, HiOutlineMenu, HiOutlineX } from 'react-icons/hi';
+import { HiOutlineLogout, HiOutlineUser, HiOutlineMenu, HiOutlineX, HiOutlineShoppingCart } from 'react-icons/hi';
 import { useState } from 'react';
 
 const Navbar = () => {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const { totalQuantity } = useSelector((state) => state.cart);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -61,6 +62,14 @@ const Navbar = () => {
               <Link to={getDashboardLink()} className="nav-link">
                 Dashboard
               </Link>
+              {user?.role === 'customer' && (
+                <Link to="/checkout" className="nav-cart-btn" title="View Cart">
+                  <HiOutlineShoppingCart />
+                  {totalQuantity > 0 && (
+                    <span className="cart-badge">{totalQuantity}</span>
+                  )}
+                </Link>
+              )}
               <div className="nav-user-info">
                 <HiOutlineUser className="nav-user-icon" />
                 <span className="nav-user-name">{user?.name}</span>

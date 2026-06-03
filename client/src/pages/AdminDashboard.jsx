@@ -7,25 +7,58 @@ import {
   HiOutlineCheckCircle,
   HiOutlineBan,
   HiOutlineRefresh,
+  HiOutlineCurrencyRupee,
+  HiOutlineShoppingBag,
+  HiOutlineOfficeBuilding,
+  HiOutlineClock,
 } from 'react-icons/hi';
+
+// Simple inline bar chart — no external dependency
+const SimpleBarChart = ({ data }) => {
+  if (!data || !data.length) return null;
+  const maxRevenue = Math.max(...data.map((d) => d.revenue), 1);
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px', height: '200px', padding: '0 8px' }}>
+      {data.map((d) => (
+        <div key={d.day} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', height: '100%', justifyContent: 'flex-end' }}>
+          <span style={{ fontSize: '0.7rem', color: 'var(--gray-500)', fontWeight: 600 }}>₹{(d.revenue/1000).toFixed(0)}k</span>
+          <div
+            style={{
+              width: '100%',
+              background: 'var(--primary)',
+              borderRadius: '4px 4px 0 0',
+              height: `${Math.max((d.revenue / maxRevenue) * 140, 4)}px`,
+              transition: 'height 0.4s ease',
+            }}
+            title={`Revenue: ₹${d.revenue} | Orders: ${d.orders}`}
+          />
+          <span style={{ fontSize: '0.75rem', color: 'var(--gray-500)', fontWeight: 500 }}>{d.day}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 const AdminDashboard = () => {
   const { user } = useSelector((state) => state.auth);
   const [pendingVendors, setPendingVendors] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
+  const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(null);
-  const [activeTab, setActiveTab] = useState('pending');
+  const [activeTab, setActiveTab] = useState('overview');
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [pendingRes, usersRes] = await Promise.all([
+      const [pendingRes, usersRes, analyticsRes] = await Promise.all([
         api.get('/admin/vendors/pending'),
         api.get('/admin/users'),
+        api.get('/analytics/admin'),
       ]);
       setPendingVendors(pendingRes.data.vendors || []);
       setAllUsers(usersRes.data.users || []);
+      setAnalytics(analyticsRes.data || null);
     } catch (error) {
       toast.error('Failed to fetch data');
     } finally {
@@ -104,6 +137,12 @@ const AdminDashboard = () => {
         {/* Tab Buttons */}
         <div className="flex gap-1 mb-4">
           <button
+            className={`btn ${activeTab === 'overview' ? 'btn-primary' : 'btn-outline'} btn-sm`}
+            onClick={() => setActiveTab('overview')}
+          >
+            📊 Overview
+          </button>
+          <button
             className={`btn ${activeTab === 'pending' ? 'btn-primary' : 'btn-outline'} btn-sm`}
             onClick={() => setActiveTab('pending')}
           >
@@ -125,7 +164,64 @@ const AdminDashboard = () => {
           </div>
         ) : (
           <>
-            {/* Pending Vendors Tab */}
+            {/* ── OVERVIEW TAB ── */}
+            {activeTab === 'overview' && (
+              <div className="fade-in">
+                {/* Stats Grid */}
+                <div className="stats-grid">
+                  <div className="stat-card primary">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <p className="stat-label">Total Revenue</p>
+                        <p className="stat-value">
+                          ₹{(analytics?.totalRevenue || 0).toLocaleString()}
+                        </p>
+                      </div>
+                      <HiOutlineCurrencyRupee style={{ fontSize: '1.75rem', color: 'var(--primary)', opacity: 0.7 }} />
+                    </div>
+                  </div>
+                  <div className="stat-card success">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <p className="stat-label">Total Orders</p>
+                        <p className="stat-value">{analytics?.totalOrders || 0}</p>
+                      </div>
+                      <HiOutlineShoppingBag style={{ fontSize: '1.75rem', color: 'var(--accent)', opacity: 0.7 }} />
+                    </div>
+                  </div>
+                  <div className="stat-card warning">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <p className="stat-label">Active Vendors</p>
+                        <p className="stat-value">{analytics?.totalVendors || 0}</p>
+                      </div>
+                      <HiOutlineOfficeBuilding style={{ fontSize: '1.75rem', color: 'var(--warning)', opacity: 0.7 }} />
+                    </div>
+                  </div>
+                  <div className="stat-card danger">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <p className="stat-label">Pending Approvals</p>
+                        <p className="stat-value">{analytics?.pendingVendors || pendingVendors.length}</p>
+                      </div>
+                      <HiOutlineClock style={{ fontSize: '1.75rem', color: 'var(--danger)', opacity: 0.7 }} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Daily Sales Chart */}
+                {analytics?.dailySales?.length > 0 && (
+                  <div className="table-container" style={{ padding: '1.25rem' }}>
+                    <h3 className="table-title" style={{ marginBottom: '1.25rem' }}>
+                      📊 Daily Sales — Last 5 Days
+                    </h3>
+                    <SimpleBarChart data={analytics.dailySales} />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── PENDING VENDORS TAB ── */}
             {activeTab === 'pending' && (
               <div className="table-container fade-in">
                 <div className="table-header">
@@ -181,7 +277,7 @@ const AdminDashboard = () => {
               </div>
             )}
 
-            {/* All Users Tab */}
+            {/* ── ALL USERS TAB ── */}
             {activeTab === 'users' && (
               <div className="table-container fade-in">
                 <div className="table-header">
@@ -242,7 +338,11 @@ const AdminDashboard = () => {
                                   {(u.status === 'suspended' || u.status === 'pending') && (
                                     <button
                                       className="btn btn-success btn-sm"
-                                      onClick={() => u.status === 'pending' ? handleApprove(u._id) : handleActivate(u._id)}
+                                      onClick={() =>
+                                        u.status === 'pending'
+                                          ? handleApprove(u._id)
+                                          : handleActivate(u._id)
+                                      }
                                       disabled={actionLoading === u._id}
                                     >
                                       {actionLoading === u._id ? (

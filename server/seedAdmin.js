@@ -7,14 +7,6 @@ dotenv.config();
 
 const User = require('./models/User');
 
-/**
- * Seed Super Admin Account
- *
- * Creates the default Super Admin if one doesn't already exist.
- * Uses credentials from .env file or defaults.
- *
- * Usage: node seedAdmin.js
- */
 const seedAdmin = async () => {
   try {
     // Connect to MongoDB
@@ -25,7 +17,7 @@ const seedAdmin = async () => {
     const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@123456';
     const adminName = process.env.ADMIN_NAME || 'Super Admin';
 
-    // Check if Super Admin already exists
+    
     const existingAdmin = await User.findOne({ role: 'superadmin' });
 
     if (existingAdmin) {
@@ -38,7 +30,7 @@ const seedAdmin = async () => {
       const admin = await User.create({
         name: adminName,
         email: adminEmail,
-        password: adminPassword, // Will be hashed by pre-save hook
+        password: adminPassword, 
         role: 'superadmin',
         status: 'active',
       });
