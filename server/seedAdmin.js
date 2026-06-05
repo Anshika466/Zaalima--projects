@@ -2,14 +2,15 @@ const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-// Load env variables
+
+
 dotenv.config();
 
 const User = require('./models/User');
 
 const seedAdmin = async () => {
   try {
-    // Connect to MongoDB
+   
     await mongoose.connect(process.env.MONGO_URI, { family: 4 });
     console.log('MongoDB Connected for seeding...');
 
@@ -26,7 +27,7 @@ const seedAdmin = async () => {
       console.log(`  Name:  ${existingAdmin.name}`);
       console.log('\nNo changes made.');
     } else {
-      // Create Super Admin
+      
       const admin = await User.create({
         name: adminName,
         email: adminEmail,
