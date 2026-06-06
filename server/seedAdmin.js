@@ -7,7 +7,6 @@ const bcrypt = require('bcryptjs');
 dotenv.config();
 
 const User = require('./models/User');
-
 const seedAdmin = async () => {
   try {
    
