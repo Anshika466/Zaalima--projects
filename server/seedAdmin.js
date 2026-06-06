@@ -44,7 +44,7 @@ const seedAdmin = async () => {
       console.log('\n⚠️  Save these credentials securely!');
     }
 
-    // Disconnect
+    
     await mongoose.disconnect();
     console.log('\nMongoDB disconnected. Seeding complete.');
     process.exit(0);
