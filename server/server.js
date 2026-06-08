@@ -6,10 +6,7 @@ const connectDB = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
 const { apiLimiter } = require('./middleware/rateLimiter');
 
-// Load environment variables
 dotenv.config();
-
-// Initialize Express app
 const app = express();
 
 // ============================================================
