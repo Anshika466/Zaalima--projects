@@ -6,21 +6,12 @@ const connectDB = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
 const { apiLimiter } = require('./middleware/rateLimiter');
 
-// Load environment variables
 dotenv.config();
 
-// Initialize Express app
 const app = express();
 
-// ============================================================
-// SECURITY MIDDLEWARE
-// ============================================================
 
-// Helmet.js — Set secure HTTP headers (PRD Section 9)
-// Enables XSS protection, Content-Security-Policy, HSTS, removes X-Powered-By
-app.use(helmet());
 
-// CORS — Allow only the frontend origin (PRD Section 9)
 app.use(
   cors({
     origin: process.env.CLIENT_URL || 'http://localhost:5173',
@@ -29,19 +20,14 @@ app.use(
   })
 );
 
-// General API rate limiting
+
 app.use('/api', apiLimiter);
 
-// ============================================================
-// BODY PARSERS
-// ============================================================
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// ============================================================
-// API ROUTES
-// ============================================================
+
 
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
