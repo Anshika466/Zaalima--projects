@@ -7,7 +7,6 @@ const errorHandler = require('./middleware/errorHandler');
 const { apiLimiter } = require('./middleware/rateLimiter');
 
 dotenv.config();
-
 const app = express();
 
 
