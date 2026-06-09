@@ -33,6 +33,14 @@ const approveVendor = async (req, res, next) => {
     user.status = 'active';
     await user.save();
 
+    // Send email notification (non-blocking)
+    try {
+      const { sendVendorApprovedMail } = require('../utils/sendNotificationMail');
+      sendVendorApprovedMail(user);
+    } catch (mailErr) {
+      console.warn('Vendor approval email failed:', mailErr.message);
+    }
+
     res.status(200).json({
       success: true,
       message: `Vendor "${user.businessName}" has been approved successfully.`,

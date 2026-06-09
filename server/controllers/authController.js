@@ -56,6 +56,14 @@ const registerCustomer = async (req, res, next) => {
       isEmailVerified: true,
     });
 
+    // Send email alert to admin (non-blocking)
+    try {
+      const { sendNewUserRegistrationMail } = require('../utils/sendNotificationMail');
+      sendNewUserRegistrationMail(user);
+    } catch (mailErr) {
+      console.warn('Admin user registration email alert failed:', mailErr.message);
+    }
+
     // Generate JWT
     const token = generateToken(user._id, user.role, user.status);
 
@@ -131,6 +139,14 @@ const registerVendor = async (req, res, next) => {
       businessDescription: businessDescription || '',
       isEmailVerified: true,
     });
+
+    // Send email alert to admin (non-blocking)
+    try {
+      const { sendNewVendorRequestMail } = require('../utils/sendNotificationMail');
+      sendNewVendorRequestMail(user);
+    } catch (mailErr) {
+      console.warn('Admin vendor registration request email alert failed:', mailErr.message);
+    }
 
     res.status(201).json({
       success: true,
