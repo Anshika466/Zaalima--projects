@@ -2,6 +2,7 @@ const express = require('express');
 const { protect, checkAccountStatus, authorizeRoles } = require('../middleware/auth');
 const User = require('../models/User');
 const Order = require('../models/Order');
+const Product = require('../models/Product');
 
 const router = express.Router();
 
@@ -20,6 +21,7 @@ router.get('/admin', async (req, res) => {
     const totalCustomers = await User.countDocuments({ role: 'customer' });
     const pendingVendors = await User.countDocuments({ role: 'vendor', status: 'pending' });
     const totalOrders = await Order.countDocuments();
+    const totalProducts = await Product.countDocuments();
 
     // Revenue: sum of all paid orders
     const revenueResult = await Order.aggregate([
@@ -60,6 +62,7 @@ router.get('/admin', async (req, res) => {
       totalOrders,
       totalVendors,
       totalCustomers,
+      totalProducts,
       pendingVendors,
       dailySales,
     });

@@ -33,6 +33,11 @@ app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/analytics', require('./routes/analyticsRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
 app.use('/api/payment', require('./routes/paymentRoutes'));
+app.use('/api/stores', require('./routes/storeRoutes'));
+app.use('/api/products', require('./routes/productRoutes'));
+app.use('/api/otp', require('./routes/otpRoutes'));
+app.use('/api/coupons', require('./routes/couponRoutes'));
+
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

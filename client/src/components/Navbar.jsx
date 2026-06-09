@@ -1,7 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logoutUser } from '../store/slices/authSlice';
-import { HiOutlineLogout, HiOutlineUser, HiOutlineMenu, HiOutlineX, HiOutlineShoppingCart } from 'react-icons/hi';
+import {
+  HiOutlineLogout, HiOutlineUser, HiOutlineMenu, HiOutlineX,
+  HiOutlineShoppingCart, HiOutlineClipboardList, HiOutlineHome,
+} from 'react-icons/hi';
 import { useState } from 'react';
 
 const Navbar = () => {
@@ -14,37 +17,24 @@ const Navbar = () => {
   const handleLogout = () => {
     dispatch(logoutUser());
     navigate('/login');
+    setMobileMenuOpen(false);
   };
 
-  // Determine dashboard link based on role
   const getDashboardLink = () => {
     if (!user) return '/login';
-    switch (user.role) {
-      case 'superadmin':
-        return '/admin/dashboard';
-      case 'vendor':
-        return '/vendor/dashboard';
-      case 'customer':
-        return '/shop';
-      default:
-        return '/login';
-    }
+    if (user.role === 'superadmin') return '/admin/dashboard';
+    if (user.role === 'vendor') return '/vendor/dashboard';
+    return '/shop';
   };
 
-  // Get role badge color
   const getRoleBadgeClass = () => {
     if (!user) return '';
-    switch (user.role) {
-      case 'superadmin':
-        return 'role-badge-admin';
-      case 'vendor':
-        return 'role-badge-vendor';
-      case 'customer':
-        return 'role-badge-customer';
-      default:
-        return '';
-    }
+    if (user.role === 'superadmin') return 'role-badge-admin';
+    if (user.role === 'vendor') return 'role-badge-vendor';
+    return 'role-badge-customer';
   };
+
+  const closeMobile = () => setMobileMenuOpen(false);
 
   return (
     <nav className="navbar">
@@ -60,23 +50,36 @@ const Navbar = () => {
           {isAuthenticated ? (
             <>
               <Link to={getDashboardLink()} className="nav-link">
-                Dashboard
+                <HiOutlineHome style={{ marginRight: '0.25rem' }} />
+                {user?.role === 'customer' ? 'Shop' : 'Dashboard'}
               </Link>
+
               {user?.role === 'customer' && (
-                <Link to="/checkout" className="nav-cart-btn" title="View Cart">
-                  <HiOutlineShoppingCart />
-                  {totalQuantity > 0 && (
-                    <span className="cart-badge">{totalQuantity}</span>
-                  )}
-                </Link>
+                <>
+                  <Link to="/orders" className="nav-link">
+                    <HiOutlineClipboardList style={{ marginRight: '0.25rem' }} />
+                    My Orders
+                  </Link>
+                  <Link to="/wishlist" className="nav-link" title="Wishlist">
+                    ❤️
+                  </Link>
+                  <Link to="/checkout" className="nav-cart-btn" title="View Cart">
+                    <HiOutlineShoppingCart />
+                    {totalQuantity > 0 && <span className="cart-badge">{totalQuantity}</span>}
+                  </Link>
+                </>
               )}
+
+              <Link to="/profile" className="nav-link">
+                <HiOutlineUser style={{ marginRight: '0.25rem' }} />
+                Profile
+              </Link>
+
               <div className="nav-user-info">
-                <HiOutlineUser className="nav-user-icon" />
                 <span className="nav-user-name">{user?.name}</span>
-                <span className={`role-badge ${getRoleBadgeClass()}`}>
-                  {user?.role}
-                </span>
+                <span className={`role-badge ${getRoleBadgeClass()}`}>{user?.role}</span>
               </div>
+
               <button onClick={handleLogout} className="btn btn-outline btn-sm">
                 <HiOutlineLogout />
                 <span>Logout</span>
@@ -84,26 +87,19 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              <Link to="/login" className="nav-link">
-                Login
-              </Link>
-              <Link to="/register" className="btn btn-primary btn-sm">
-                Register
-              </Link>
+              <Link to="/login" className="nav-link">Login</Link>
+              <Link to="/register" className="btn btn-primary btn-sm">Register</Link>
             </>
           )}
         </div>
 
-        {/* Mobile menu button */}
-        <button
-          className="mobile-menu-btn"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        >
+        {/* Mobile toggle */}
+        <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
           {mobileMenuOpen ? <HiOutlineX /> : <HiOutlineMenu />}
         </button>
       </div>
 
-      {/* Mobile Navigation */}
+      {/* Mobile menu */}
       {mobileMenuOpen && (
         <div className="mobile-menu">
           {isAuthenticated ? (
@@ -111,51 +107,34 @@ const Navbar = () => {
               <div className="mobile-user-info">
                 <HiOutlineUser />
                 <span>{user?.name}</span>
-                <span className={`role-badge ${getRoleBadgeClass()}`}>
-                  {user?.role}
-                </span>
+                <span className={`role-badge ${getRoleBadgeClass()}`}>{user?.role}</span>
               </div>
-              <Link
-                to={getDashboardLink()}
-                className="mobile-link"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Dashboard
+              <Link to={getDashboardLink()} className="mobile-link" onClick={closeMobile}>
+                {user?.role === 'customer' ? 'Shop' : 'Dashboard'}
               </Link>
-              <button
-                onClick={() => {
-                  handleLogout();
-                  setMobileMenuOpen(false);
-                }}
-                className="mobile-link logout-link"
-              >
-                <HiOutlineLogout />
-                <span>Logout</span>
+              {user?.role === 'customer' && (
+                <>
+                  <Link to="/orders" className="mobile-link" onClick={closeMobile}>
+                    My Orders
+                  </Link>
+                  <Link to="/wishlist" className="mobile-link" onClick={closeMobile}>
+                    ❤️ Wishlist
+                  </Link>
+                  <Link to="/checkout" className="mobile-link" onClick={closeMobile}>
+                    Cart {totalQuantity > 0 && `(${totalQuantity})`}
+                  </Link>
+                </>
+              )}
+              <Link to="/profile" className="mobile-link" onClick={closeMobile}>Profile</Link>
+              <button onClick={handleLogout} className="mobile-link logout-link">
+                <HiOutlineLogout /><span>Logout</span>
               </button>
             </>
           ) : (
             <>
-              <Link
-                to="/login"
-                className="mobile-link"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Login
-              </Link>
-              <Link
-                to="/register"
-                className="mobile-link"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Register
-              </Link>
-              <Link
-                to="/vendor/register"
-                className="mobile-link"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Register as Vendor
-              </Link>
+              <Link to="/login" className="mobile-link" onClick={closeMobile}>Login</Link>
+              <Link to="/register" className="mobile-link" onClick={closeMobile}>Register as Customer</Link>
+              <Link to="/vendor/register" className="mobile-link" onClick={closeMobile}>Register as Vendor</Link>
             </>
           )}
         </div>

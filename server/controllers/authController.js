@@ -26,12 +26,25 @@ const registerCustomer = async (req, res, next) => {
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
-    if (existingUser) {
+    if (existingUser && existingUser.isEmailVerified) {
       return res.status(400).json({
         success: false,
         message: 'An account with this email already exists.',
       });
     }
+
+    // Check OTP verification (in-memory pending map)
+    const pendingKey = email.toLowerCase();
+    const pending = global._pendingOtps?.[pendingKey];
+    if (!pending || !pending.verified) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please verify your email with OTP before registering.',
+      });
+    }
+
+    // Clean up pending OTP
+    delete global._pendingOtps[pendingKey];
 
     // Create customer (status defaults to 'active', role defaults to 'customer')
     const user = await User.create({
@@ -40,6 +53,7 @@ const registerCustomer = async (req, res, next) => {
       password,
       role: 'customer',
       status: 'active',
+      isEmailVerified: true,
     });
 
     // Generate JWT
@@ -86,12 +100,25 @@ const registerVendor = async (req, res, next) => {
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
-    if (existingUser) {
+    if (existingUser && existingUser.isEmailVerified) {
       return res.status(400).json({
         success: false,
         message: 'An account with this email already exists.',
       });
     }
+
+    // Check OTP verification
+    const pendingKey = email.toLowerCase();
+    const pending = global._pendingOtps?.[pendingKey];
+    if (!pending || !pending.verified) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please verify your email with OTP before registering.',
+      });
+    }
+
+    // Clean up pending OTP
+    delete global._pendingOtps[pendingKey];
 
     // Create vendor with 'pending' status
     const user = await User.create({
@@ -102,6 +129,7 @@ const registerVendor = async (req, res, next) => {
       status: 'pending',
       businessName,
       businessDescription: businessDescription || '',
+      isEmailVerified: true,
     });
 
     res.status(201).json({

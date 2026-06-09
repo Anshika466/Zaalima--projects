@@ -141,6 +141,12 @@ const Login = () => {
             )}
           </div>
 
+          <div style={{ textAlign: 'right', marginTop: '-0.5rem', marginBottom: '0.75rem' }}>
+            <Link to="/forgot-password" className="form-link" style={{ fontSize: '0.82rem' }}>
+              Forgot Password?
+            </Link>
+          </div>
+
           <button
             type="submit"
             className="btn btn-primary btn-block"

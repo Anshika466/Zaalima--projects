@@ -60,6 +60,24 @@ const userSchema = new mongoose.Schema(
       ref: 'Store',
       default: null,
     },
+    otp: {
+      type: String,
+      select: false,
+    },
+    otpExpiry: {
+      type: Date,
+      select: false,
+    },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    wishlist: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Product',
+      },
+    ],
   },
   {
     timestamps: true, // Adds createdAt and updatedAt

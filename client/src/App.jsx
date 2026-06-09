@@ -3,29 +3,30 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getMe } from './store/slices/authSlice';
 
-// Components
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 
-// Pages — Auth (existing)
 import Login from './pages/Login';
 import AdminLogin from './pages/AdminLogin';
 import CustomerRegister from './pages/CustomerRegister';
 import VendorRegister from './pages/VendorRegister';
 
-// Pages — Dashboards (existing)
 import CustomerHome from './pages/CustomerHome';
 import VendorDashboard from './pages/VendorDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 
-// Pages — New (integrated from teammate's module)
 import Checkout from './pages/Checkout';
+import MyOrders from './pages/MyOrders';
+import Profile from './pages/Profile';
+import ForgotPassword from './pages/ForgotPassword';
+import ProductDetail from './pages/ProductDetail';
+import StorePage from './pages/StorePage';
+import Wishlist from './pages/Wishlist';
 
 function App() {
   const dispatch = useDispatch();
   const { token, isAuthenticated } = useSelector((state) => state.auth);
 
-  // On app load, if token exists, fetch user profile to restore session
   useEffect(() => {
     if (token && !isAuthenticated) {
       dispatch(getMe());
@@ -37,51 +38,31 @@ function App() {
       <div className="app-container">
         <Navbar />
         <Routes>
-          {/* ── PUBLIC ROUTES ── */}
+          {/* PUBLIC */}
           <Route path="/login" element={<Login />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/register" element={<CustomerRegister />} />
           <Route path="/vendor/register" element={<VendorRegister />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
+          <Route path="/store/:id" element={<StorePage />} />
 
-          {/* ── PROTECTED — CUSTOMER ── */}
-          <Route
-            path="/shop"
-            element={
-              <ProtectedRoute allowedRoles={['customer']}>
-                <CustomerHome />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/checkout"
-            element={
-              <ProtectedRoute allowedRoles={['customer']}>
-                <Checkout />
-              </ProtectedRoute>
-            }
-          />
+          {/* CUSTOMER */}
+          <Route path="/shop" element={<ProtectedRoute allowedRoles={['customer']}><CustomerHome /></ProtectedRoute>} />
+          <Route path="/checkout" element={<ProtectedRoute allowedRoles={['customer']}><Checkout /></ProtectedRoute>} />
+          <Route path="/orders" element={<ProtectedRoute allowedRoles={['customer']}><MyOrders /></ProtectedRoute>} />
+          <Route path="/wishlist" element={<ProtectedRoute allowedRoles={['customer']}><Wishlist /></ProtectedRoute>} />
 
-          {/* ── PROTECTED — VENDOR ── */}
-          <Route
-            path="/vendor/dashboard"
-            element={
-              <ProtectedRoute allowedRoles={['vendor']}>
-                <VendorDashboard />
-              </ProtectedRoute>
-            }
-          />
+          {/* ALL ROLES */}
+          <Route path="/profile" element={<ProtectedRoute allowedRoles={['customer', 'vendor', 'superadmin']}><Profile /></ProtectedRoute>} />
 
-          {/* ── PROTECTED — ADMIN ── */}
-          <Route
-            path="/admin/dashboard"
-            element={
-              <ProtectedRoute allowedRoles={['superadmin']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
+          {/* VENDOR */}
+          <Route path="/vendor/dashboard" element={<ProtectedRoute allowedRoles={['vendor']}><VendorDashboard /></ProtectedRoute>} />
 
-          {/* ── DEFAULTS ── */}
+          {/* ADMIN */}
+          <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['superadmin']}><AdminDashboard /></ProtectedRoute>} />
+
+          {/* DEFAULTS */}
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
