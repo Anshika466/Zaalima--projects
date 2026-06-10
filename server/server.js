@@ -39,7 +39,7 @@ app.use('/api/otp', require('./routes/otpRoutes'));
 app.use('/api/coupons', require('./routes/couponRoutes'));
 
 
-// Health check endpoint
+
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     success: true,
@@ -48,11 +48,9 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// ============================================================
-// ERROR HANDLING
-// ============================================================
 
-// Handle 404 — Route not found
+
+
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -60,7 +58,7 @@ app.use((req, res) => {
   });
 });
 
-// Global error handler (must be last middleware)
+
 app.use(errorHandler);
 
 // ============================================================
