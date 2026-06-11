@@ -1,4 +1,4 @@
-const express = require('express');
+ const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -58,12 +58,7 @@ app.use((req, res) => {
   });
 });
 
-
 app.use(errorHandler);
-
-// ============================================================
-// START SERVER
-// ============================================================
 
 const PORT = process.env.PORT || 5000;
 
