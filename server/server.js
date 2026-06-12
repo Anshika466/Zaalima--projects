@@ -68,9 +68,9 @@ const startServer = async () => {
     await connectDB();
 
     app.listen(PORT, () => {
-      console.log(`\n🚀 Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-      console.log(`📡 API Base URL: http://localhost:${PORT}/api`);
-      console.log(`❤️  Health Check: http://localhost:${PORT}/api/health\n`);
+      console.log(`\n Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+      console.log(` API Base URL: http://localhost:${PORT}/api`);
+      console.log(`  Health Check: http://localhost:${PORT}/api/health\n`);
     });
   } catch (error) {
     console.error('Failed to start server:', error.message);
