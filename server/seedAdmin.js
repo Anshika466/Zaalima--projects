@@ -35,12 +35,12 @@ const seedAdmin = async () => {
         status: 'active',
       });
 
-      console.log('✅ Super Admin created successfully!');
+      console.log('Super Admin created successfully!');
       console.log(`  Email:    ${admin.email}`);
       console.log(`  Name:     ${admin.name}`);
       console.log(`  Role:     ${admin.role}`);
       console.log(`  Status:   ${admin.status}`);
-      console.log('\n⚠️  Save these credentials securely!');
+      console.log('\n  Save these credentials securely!');
     }
 
     
