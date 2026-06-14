@@ -9,7 +9,7 @@ const generateToken = require('../utils/generateToken');
  */
 const registerCustomer = async (req, res, next) => {
   try {
-    // Check validation errors from express-validator
+  
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
