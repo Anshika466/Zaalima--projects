@@ -1,12 +1,5 @@
 const rateLimit = require('express-rate-limit');
 
-/**
- * Login Rate Limiter (PRD Section 9 - Rate Limiting)
- *
- * Max 10 requests per 15 minutes per IP on login endpoints
- * to prevent brute-force attacks.
- */
-const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10, // Max 10 requests per window
   message: {
