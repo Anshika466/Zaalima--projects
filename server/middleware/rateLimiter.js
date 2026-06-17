@@ -11,11 +11,7 @@ const rateLimit = require('express-rate-limit');
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 
-/**
- * General API Rate Limiter
- *
- * Max 100 requests per 15 minutes per IP for general API routes.
- */
+
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100,
