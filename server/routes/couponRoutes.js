@@ -4,11 +4,7 @@ const { protect, checkAccountStatus, authorizeRoles } = require('../middleware/a
 
 const router = express.Router();
 
-/**
- * POST /api/coupons/validate
- * Validate a coupon code and return discount info.
- * @access Private (customer)
- */
+
 router.post('/validate', protect, checkAccountStatus, authorizeRoles('customer'), async (req, res) => {
   try {
     const { code, orderTotal } = req.body;
