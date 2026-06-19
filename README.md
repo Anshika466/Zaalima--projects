@@ -9,7 +9,7 @@ Developed under **Zaalima Development**, this project is modularized into four p
 4. **Dashboard & Analytics Module**
 
 ---
-
+ 
 ## 🏗️ Architecture & Modules Overview
 
 ### 🔑 1. Authentication & RBAC (Security Layer)
